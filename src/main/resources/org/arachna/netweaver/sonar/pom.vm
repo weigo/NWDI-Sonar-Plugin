@@ -18,9 +18,43 @@
   </scm>
 
   <build>
+    <sourceDirectory>$source</sourceDirectory>
+#if($sources)	
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>$targetVersion</source>
+          <target>$targetVersion</target>
+          <excludes>
+            <exclude>**/*.*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
 #foreach($src in $sources) 
-    <sourceDirectory>$src</sourceDirectory>
-#end    
+                <source>$src</source>
+#end
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+#end
     <pluginManagement>
       <plugins>
         <plugin>
@@ -31,4 +65,10 @@
       </plugins>
     </pluginManagement>
   </build>
+#if($sources)  
+  <properties>
+    <sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
+    <sonar.phase>generate-sources</sonar.phase>
+  </properties>
+#end
 </project>
