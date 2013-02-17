@@ -59,7 +59,8 @@ public class SonarBuilder extends Builder {
         final AntHelper antHelper =
             new AntHelper(FilePathHelper.makeAbsolute(build.getWorkspace()), nwdiBuild.getDevelopmentComponentFactory());
         final SonarPomGenerator pomGenerator =
-            new SonarPomGenerator(antHelper, new VelocityHelper(listener.getLogger()).getVelocityEngine());
+            new SonarPomGenerator(antHelper, nwdiBuild.getDevelopmentComponentFactory(), new VelocityHelper(
+                listener.getLogger()).getVelocityEngine());
         String pomLocation = "";
 
         final MavenInstallation maven = getRequiredMavenInstallation(launcher);
@@ -69,15 +70,16 @@ public class SonarBuilder extends Builder {
             final String jvmOptions = "";
             final String properties = "";
 
-            for (final DevelopmentComponent component : nwdiBuild.getAffectedDevelopmentComponents(new DCWithJavaSourceAcceptingFilter())) {
+            for (final DevelopmentComponent component : nwdiBuild
+                .getAffectedDevelopmentComponents(new DCWithJavaSourceAcceptingFilter())) {
                 if (component.getCompartment() != null) {
                     try {
                         pomLocation = String.format("%s/sonar-pom.xml", antHelper.getBaseLocation(component));
                         pomGenerator.execute(component, new FileWriter(pomLocation));
 
                         result |=
-                            new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild, launcher,
-                                listener);
+                            new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(
+                                nwdiBuild, launcher, listener);
                     }
                     catch (final IOException ioe) {
                         Logger.getLogger("NWDI-Sonar-Plugin").warning(
@@ -85,7 +87,8 @@ public class SonarBuilder extends Builder {
                     }
                 }
                 else {
-                    listener.getLogger().println(String.format("%s:%s has no compartment!", component.getVendor(), component.getName()));
+                    listener.getLogger().println(
+                        String.format("%s:%s has no compartment!", component.getVendor(), component.getName()));
                 }
             }
         }
@@ -96,8 +99,10 @@ public class SonarBuilder extends Builder {
         return result;
     }
 
-    private MavenInstallation getRequiredMavenInstallation(final Launcher launcher) throws IOException, InterruptedException {
-        final MavenInstallation.DescriptorImpl descriptor = ToolInstallation.all().get(MavenInstallation.DescriptorImpl.class);
+    private MavenInstallation getRequiredMavenInstallation(final Launcher launcher) throws IOException,
+        InterruptedException {
+        final MavenInstallation.DescriptorImpl descriptor =
+            ToolInstallation.all().get(MavenInstallation.DescriptorImpl.class);
         final MavenInstallation[] installations = descriptor.getInstallations();
         MavenInstallation maven = null;
 

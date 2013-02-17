@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:pom="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -10,6 +10,10 @@
 
   <properties>
     <source.encoding>UTF-8</source.encoding>
+#if($sources)  
+    <sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
+    <sonar.phase>generate-sources</sonar.phase>
+#end
   </properties>
 
   <scm>
@@ -18,6 +22,7 @@
   </scm>
 
   <build>
+    <outputDirectory>$targetFolder</outputDirectory>
     <sourceDirectory>$source</sourceDirectory>
 #if($sources)	
     <plugins>
@@ -65,10 +70,18 @@
       </plugins>
     </pluginManagement>
   </build>
-#if($sources)  
-  <properties>
-    <sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
-    <sonar.phase>generate-sources</sonar.phase>
-  </properties>
+  <dependencies>
+#foreach($dependency in $dependencies)
+#foreach($path in $dependency.paths)
+    <dependency>
+      <groupId>$dependency.groupId</groupId>
+      <artifactId>$dependency.artifactId</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <type>jar</type>
+      <scope>system</scope>
+      <systemPath>$path</systemPath>
+    </dependency>
 #end
+#end
+  </dependencies>
 </project>
