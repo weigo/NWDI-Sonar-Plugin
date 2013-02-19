@@ -25,6 +25,9 @@
   <build>
     <outputDirectory>$targetFolder</outputDirectory>
     <sourceDirectory>$source</sourceDirectory>
+#if ($testSourceDirectory)
+    <testSourceDirectory>$testSourceDirectory</testSourceDirectory>
+#end    
 #if($sources)	
     <plugins>
       <plugin>
