@@ -3,6 +3,10 @@
  */
 package org.arachna.netweaver.sonar;
 
+import japa.parser.JavaParser;
+import japa.parser.ParseException;
+import japa.parser.ast.CompilationUnit;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +69,7 @@ public class SonarPomGenerator {
         context.put("artifactId", getArtifactId(component));
         context.put("targetFolder", component.getOutputFolder());
         final List<String> sources = new ArrayList<String>(antHelper.createSourceFileSets(component));
+        determineTestFolder(sources);
         context.put("source", sources.get(0));
 
         if (sources.size() > 1) {
@@ -76,6 +81,29 @@ public class SonarPomGenerator {
         context.put("dependencies", createClassPath(component));
 
         return context;
+    }
+
+    private String determineTestFolder(final List<String> sources) {
+        for (final String sourceFolder : sources) {
+            final FileFinder finder = new FileFinder(new File(sourceFolder), ".*\\.java");
+
+            for (final File file : finder.find()) {
+                try {
+                    final CompilationUnit compilationUnit = JavaParser.parse(file, "UTF-8");
+                    compilationUnit.accept(new TestPackageResolver(), null);
+                }
+                catch (final ParseException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                catch (final IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return null;
     }
 
     private String getGroupId(final DevelopmentComponent component) {
@@ -99,7 +127,7 @@ public class SonarPomGenerator {
                 if (baseDir.exists()) {
                     final FileFinder finder = new FileFinder(baseDir, ".*\\.jar");
                     final DependencyDto dependency =
-                        new DependencyDto(getGroupId(referencedDC), getArtifactId(component));
+                        new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
 
                     for (final File path : finder.find()) {
                         dependency.addPath(path.getAbsolutePath());
