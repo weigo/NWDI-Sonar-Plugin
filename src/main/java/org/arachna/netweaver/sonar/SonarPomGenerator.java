@@ -16,14 +16,17 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.context.Context;
 import org.arachna.ant.AntHelper;
+import org.arachna.ant.ExcludesFactory;
 import org.arachna.javaparser.ClassNameResolver;
 import org.arachna.netweaver.dc.types.DevelopmentComponent;
 import org.arachna.netweaver.dc.types.DevelopmentComponentFactory;
@@ -44,7 +47,10 @@ public class SonarPomGenerator {
     private final AntHelper antHelper;
     private final DevelopmentComponentFactory dcFactory;
 
-    SonarPomGenerator(final AntHelper antHelper, final DevelopmentComponentFactory dcFactory, final VelocityEngine engine) {
+    private final ExcludesFactory excludesFactory = new ExcludesFactory();
+
+    SonarPomGenerator(final AntHelper antHelper, final DevelopmentComponentFactory dcFactory,
+        final VelocityEngine engine) {
         this.antHelper = antHelper;
         this.dcFactory = dcFactory;
         this.engine = engine;
@@ -69,6 +75,7 @@ public class SonarPomGenerator {
         context.put("groupId", getGroupId(component));
         context.put("artifactId", getArtifactId(component));
         context.put("targetFolder", component.getOutputFolder());
+        context.put("sonarExclusions", createExclusions(component));
         final List<String> sources = new ArrayList<String>(antHelper.createSourceFileSets(component));
         final String testFolder = determineTestFolder(sources);
 
@@ -88,6 +95,19 @@ public class SonarPomGenerator {
         context.put("dependencies", createClassPath(component));
 
         return context;
+    }
+
+    /**
+     * Create the 'sonar.exclusions' property to a comma separated list of files
+     * to exclude from analysis.
+     * 
+     * @param component
+     *            development component to generate exclusions for.
+     * @return comma separated list of exclusions for the given development
+     *         component.
+     */
+    private String createExclusions(final DevelopmentComponent component) {
+        return StringUtils.join(excludesFactory.create(component, Collections.<String> emptyList()), ',');
     }
 
     private String determineTestFolder(final List<String> sources) {
@@ -125,8 +145,8 @@ public class SonarPomGenerator {
     }
 
     private String getGroupId(final DevelopmentComponent component) {
-        return String.format("%s.%s", component.getCompartment().getDevelopmentConfiguration().getName(), component.getCompartment()
-            .getName());
+        return String.format("%s.%s", component.getCompartment().getDevelopmentConfiguration().getName(), component
+            .getCompartment().getName());
     }
 
     private String getArtifactId(final DevelopmentComponent component) {
@@ -144,7 +164,8 @@ public class SonarPomGenerator {
 
                 if (baseDir.exists()) {
                     final FileFinder finder = new FileFinder(baseDir, ".*\\.jar");
-                    final DependencyDto dependency = new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
+                    final DependencyDto dependency =
+                        new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
 
                     for (final File path : finder.find()) {
                         dependency.addPath(path.getAbsolutePath());
