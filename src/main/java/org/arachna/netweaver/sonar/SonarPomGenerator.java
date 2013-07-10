@@ -3,14 +3,8 @@
  */
 package org.arachna.netweaver.sonar;
 
-import japa.parser.JavaParser;
-import japa.parser.ParseException;
-import japa.parser.ast.CompilationUnit;
-import japa.parser.ast.PackageDeclaration;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
@@ -27,7 +21,6 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.context.Context;
 import org.arachna.ant.AntHelper;
 import org.arachna.ant.ExcludesFactory;
-import org.arachna.javaparser.ClassNameResolver;
 import org.arachna.netweaver.dc.types.DevelopmentComponent;
 import org.arachna.netweaver.dc.types.DevelopmentComponentFactory;
 import org.arachna.netweaver.dc.types.DevelopmentConfiguration;
@@ -49,8 +42,7 @@ public class SonarPomGenerator {
 
     private final ExcludesFactory excludesFactory = new ExcludesFactory();
 
-    SonarPomGenerator(final AntHelper antHelper, final DevelopmentComponentFactory dcFactory,
-        final VelocityEngine engine) {
+    SonarPomGenerator(final AntHelper antHelper, final DevelopmentComponentFactory dcFactory, final VelocityEngine engine) {
         this.antHelper = antHelper;
         this.dcFactory = dcFactory;
         this.engine = engine;
@@ -65,8 +57,7 @@ public class SonarPomGenerator {
      * @return
      */
     private Reader getTemplate() {
-        final InputStream resource = getClass().getResourceAsStream("/org/arachna/netweaver/sonar/pom.vm");
-        return new InputStreamReader(resource);
+        return new InputStreamReader(getClass().getResourceAsStream("/org/arachna/netweaver/sonar/pom.vm"));
     }
 
     private Context createContext(final DevelopmentComponent component) {
@@ -77,18 +68,22 @@ public class SonarPomGenerator {
         context.put("targetFolder", component.getOutputFolder());
         context.put("sonarExclusions", createExclusions(component));
         final List<String> sources = new ArrayList<String>(antHelper.createSourceFileSets(component));
-        final String testFolder = determineTestFolder(sources);
+        final List<String> testFolders = new ArrayList<String>() {
+            {
+                addAll(component.getTestSourceFolders());
+            }
+        };
 
-        if (testFolder != null) {
-            sources.remove(testFolder);
-            context.put("testSourceDirectory", testFolder);
+        if (!testFolders.isEmpty()) {
+            context.put("testSourceDirectory", testFolders.get(0));
+            testFolders.remove(0);
         }
 
         context.put("source", sources.get(0));
+        sources.remove(0);
+        sources.addAll(testFolders);
 
-        if (sources.size() > 1) {
-            context.put("sources", sources.subList(1, sources.size()));
-        }
+        context.put("sources", sources);
 
         final DevelopmentConfiguration config = component.getCompartment().getDevelopmentConfiguration();
         context.put("targetVersion", config.getSourceVersion());
@@ -98,55 +93,19 @@ public class SonarPomGenerator {
     }
 
     /**
-     * Create the 'sonar.exclusions' property to a comma separated list of files
-     * to exclude from analysis.
+     * Create the 'sonar.exclusions' property to a comma separated list of files to exclude from analysis.
      * 
      * @param component
      *            development component to generate exclusions for.
-     * @return comma separated list of exclusions for the given development
-     *         component.
+     * @return comma separated list of exclusions for the given development component.
      */
     private String createExclusions(final DevelopmentComponent component) {
-        return StringUtils.join(excludesFactory.create(component, Collections.<String> emptyList()), ',');
-    }
-
-    private String determineTestFolder(final List<String> sources) {
-        for (final String sourceFolder : sources) {
-            final FileFinder finder = new FileFinder(new File(sourceFolder), ".*\\.java");
-
-            for (final File file : finder.find()) {
-                try {
-                    final CompilationUnit compilationUnit = JavaParser.parse(file, "UTF-8");
-                    final PackageDeclaration packageDescriptor = compilationUnit.getPackage();
-
-                    if (packageDescriptor != null) {
-                        final TestPackageResolver testPackageResolver =
-                            new TestPackageResolver(new ClassNameResolver(packageDescriptor.getName().toString(),
-                                compilationUnit.getImports()));
-                        compilationUnit.accept(testPackageResolver, null);
-
-                        if (testPackageResolver.isTestFolder()) {
-                            return sourceFolder;
-                        }
-                    }
-                }
-                catch (final ParseException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                catch (final IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return null;
+        return StringUtils.join(excludesFactory.create(component, Collections.<String>emptyList()), ',');
     }
 
     private String getGroupId(final DevelopmentComponent component) {
-        return String.format("%s.%s", component.getCompartment().getDevelopmentConfiguration().getName(), component
-            .getCompartment().getName());
+        return String.format("%s.%s", component.getCompartment().getDevelopmentConfiguration().getName(), component.getCompartment()
+            .getName());
     }
 
     private String getArtifactId(final DevelopmentComponent component) {
@@ -164,8 +123,7 @@ public class SonarPomGenerator {
 
                 if (baseDir.exists()) {
                     final FileFinder finder = new FileFinder(baseDir, ".*\\.jar");
-                    final DependencyDto dependency =
-                        new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
+                    final DependencyDto dependency = new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
 
                     for (final File path : finder.find()) {
                         dependency.addPath(path.getAbsolutePath());

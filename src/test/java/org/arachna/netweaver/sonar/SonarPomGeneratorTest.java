@@ -72,14 +72,11 @@ public class SonarPomGeneratorTest extends XMLTestCase {
 
         dcFactory = new DevelopmentComponentFactory();
         antHelper = Mockito.mock(AntHelper.class);
-        generator =
-            new SonarPomGenerator(antHelper, dcFactory,
-                new VelocityHelper(new PrintStream(System.out)).getVelocityEngine());
+        generator = new SonarPomGenerator(antHelper, dcFactory, new VelocityHelper(new PrintStream(System.out)).getVelocityEngine());
     }
 
     /**
-     * Set up fixture with example components (development configuration, SC,
-     * DC).
+     * Set up fixture with example components (development configuration, SC, DC).
      */
     private void setUpExampleComponents() {
         configuration = new DevelopmentConfiguration("DI_XMPL_D");
@@ -90,9 +87,8 @@ public class SonarPomGeneratorTest extends XMLTestCase {
     }
 
     /**
-     * initialize XMLUitl with name space mapping used in pom (needed because
-     * default name space in XPath & XML with name spaces didn't work out for
-     * testing).
+     * initialize XMLUtil with name space mapping used in pom (needed because default name space in XPath & XML with name spaces didn't work
+     * out for testing).
      */
     private void setUpNamespaceMapping() {
         final Map<String, String> nameSpaceMappings = new LinkedHashMap<String, String>();
@@ -110,8 +106,7 @@ public class SonarPomGeneratorTest extends XMLTestCase {
 
     /**
      * Test method for
-     * {@link org.arachna.netweaver.sonar.SonarPomGenerator#execute(org.arachna.netweaver.dc.types.DevelopmentComponent, java.io.Writer)}
-     * .
+     * {@link org.arachna.netweaver.sonar.SonarPomGenerator#execute(org.arachna.netweaver.dc.types.DevelopmentComponent, java.io.Writer)} .
      * 
      * @throws IOException
      */
