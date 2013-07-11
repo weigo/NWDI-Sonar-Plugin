@@ -4,7 +4,6 @@
 package org.arachna.netweaver.sonar;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -72,7 +71,7 @@ public class SonarPomGeneratorTest extends XMLTestCase {
 
         dcFactory = new DevelopmentComponentFactory();
         antHelper = Mockito.mock(AntHelper.class);
-        generator = new SonarPomGenerator(antHelper, dcFactory, new VelocityHelper(new PrintStream(System.out)).getVelocityEngine());
+        generator = new SonarPomGenerator(antHelper, dcFactory, new VelocityHelper().getVelocityEngine());
     }
 
     /**

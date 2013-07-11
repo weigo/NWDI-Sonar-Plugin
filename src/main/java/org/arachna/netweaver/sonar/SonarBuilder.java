@@ -57,8 +57,7 @@ public class SonarBuilder extends Builder {
         final AntHelper antHelper =
             new AntHelper(FilePathHelper.makeAbsolute(build.getWorkspace()), nwdiBuild.getDevelopmentComponentFactory());
         final SonarPomGenerator pomGenerator =
-            new SonarPomGenerator(antHelper, nwdiBuild.getDevelopmentComponentFactory(),
-                new VelocityHelper(listener.getLogger()).getVelocityEngine());
+            new SonarPomGenerator(antHelper, nwdiBuild.getDevelopmentComponentFactory(), new VelocityHelper().getVelocityEngine());
         String pomLocation = "";
 
         final MavenInstallation maven = getRequiredMavenInstallation(launcher);
