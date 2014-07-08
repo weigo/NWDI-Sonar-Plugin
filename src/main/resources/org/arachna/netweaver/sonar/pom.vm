@@ -27,27 +27,33 @@
 
   <build>
     <outputDirectory>$targetFolder</outputDirectory>
-    <sourceDirectory>$source</sourceDirectory>
-#if ($testSourceDirectory)
-    <testSourceDirectory>$testSourceDirectory</testSourceDirectory>
-#end    
 #if($sources)	
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
         <configuration>
           <source>$targetVersion</source>
           <target>$targetVersion</target>
-          <excludes>
-            <exclude>**/*.*</exclude>
-          </excludes>
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit47</artifactId>
+            <version>2.16</version>
+          </dependency>
+        </dependencies>
+	  </plugin>      
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.5</version>
+        <version>1.8</version>
         <executions>
           <execution>
             <id>add-source</id>
@@ -61,6 +67,36 @@
                 <source>$src</source>
 #end
               </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+#foreach($src in $testSources) 
+                <source>$src</source>
+#end
+              </sources>
+            </configuration>
+          </execution>  
+          <execution>
+            <id>add-resource</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+#foreach($resource in $resources)              
+                <resource>
+                  <directory>$resource</directory>
+                </resource>
+#end                
+              </resources>
             </configuration>
           </execution>
         </executions>
@@ -82,11 +118,11 @@
 #foreach($path in $dependency.paths)
     <dependency>
       <groupId>$dependency.groupId</groupId>
-      <artifactId>$dependency.artifactId</artifactId>
+      <artifactId>$dependency.getArtifactId($path)</artifactId>
       <version>${default.version}</version>
       <type>jar</type>
       <scope>system</scope>
-      <systemPath>$path</systemPath>
+      <systemPath>$path.getPath()</systemPath>
     </dependency>
 #end
 #end

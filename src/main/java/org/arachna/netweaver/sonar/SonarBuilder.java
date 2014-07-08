@@ -28,7 +28,8 @@ import org.arachna.velocity.VelocityHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Jenkins builder that executes the maven sonar plugin for NetWeaver development components.
+ * Jenkins builder that executes the maven sonar plugin for NetWeaver
+ * development components.
  * 
  * @author Dirk Weigenand
  */
@@ -40,7 +41,8 @@ public class SonarBuilder extends Builder {
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
     /**
-     * Data bound constructor. Used for populating a {@link SonarBuilder} instance from form fields in <code>config.jelly</code>.
+     * Data bound constructor. Used for populating a {@link SonarBuilder}
+     * instance from form fields in <code>config.jelly</code>.
      */
     @DataBoundConstructor
     public SonarBuilder() {
@@ -75,8 +77,8 @@ public class SonarBuilder extends Builder {
                             pomGenerator.execute(component, new FileWriter(pomLocation));
 
                             result |=
-                                new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild, launcher,
-                                    listener);
+                                new Maven("test sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild,
+                                    launcher, listener);
                         }
                         catch (final IOException ioe) {
                             Logger.getLogger("NWDI-Sonar-Plugin").warning(
@@ -127,7 +129,8 @@ public class SonarBuilder extends Builder {
      */
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
         /**
-         * Create descriptor for NWDI-CheckStyle-Builder and load global configuration data.
+         * Create descriptor for NWDI-CheckStyle-Builder and load global
+         * configuration data.
          */
         public DescriptorImpl() {
             load();

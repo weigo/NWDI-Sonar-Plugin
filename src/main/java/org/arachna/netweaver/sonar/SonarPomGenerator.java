@@ -8,12 +8,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -67,23 +66,9 @@ public class SonarPomGenerator {
         context.put("artifactId", getArtifactId(component));
         context.put("targetFolder", component.getOutputFolder());
         context.put("sonarExclusions", createExclusions(component));
-        final List<String> sources = new ArrayList<String>(antHelper.createSourceFileSets(component));
-        final List<String> testFolders = new ArrayList<String>() {
-            {
-                addAll(component.getTestSourceFolders());
-            }
-        };
-
-        if (!testFolders.isEmpty()) {
-            context.put("testSourceDirectory", testFolders.get(0));
-            testFolders.remove(0);
-        }
-
-        context.put("source", sources.get(0));
-        sources.remove(0);
-        sources.addAll(testFolders);
-
-        context.put("sources", sources);
+        context.put("sources", antHelper.createSourceFileSets(component));
+        context.put("testSources", component.getTestSourceFolders());
+        context.put("resources", component.getResourceFolders());
 
         final DevelopmentConfiguration config = component.getCompartment().getDevelopmentConfiguration();
         context.put("targetVersion", config.getSourceVersion());
@@ -93,14 +78,16 @@ public class SonarPomGenerator {
     }
 
     /**
-     * Create the 'sonar.exclusions' property to a comma separated list of files to exclude from analysis.
+     * Create the 'sonar.exclusions' property to a comma separated list of files
+     * to exclude from analysis.
      * 
      * @param component
      *            development component to generate exclusions for.
-     * @return comma separated list of exclusions for the given development component.
+     * @return comma separated list of exclusions for the given development
+     *         component.
      */
     private String createExclusions(final DevelopmentComponent component) {
-        return StringUtils.join(excludesFactory.create(component, Collections.<String>emptyList()), ',');
+        return StringUtils.join(excludesFactory.create(component, Collections.<String> emptyList()), ',');
     }
 
     private String getGroupId(final DevelopmentComponent component) {
@@ -112,8 +99,8 @@ public class SonarPomGenerator {
         return component.getNormalizedName(".").replace('~', '.');
     }
 
-    public Set<DependencyDto> createClassPath(final DevelopmentComponent component) {
-        final Set<DependencyDto> paths = new HashSet<DependencyDto>();
+    public Collection<DependencyDto> createClassPath(final DevelopmentComponent component) {
+        final Map<String, DependencyDto> dependencies = new HashMap<String, DependencyDto>();
 
         for (final PublicPartReference ppRef : component.getUsedDevelopmentComponents()) {
             final DevelopmentComponent referencedDC = dcFactory.get(ppRef);
@@ -123,38 +110,151 @@ public class SonarPomGenerator {
 
                 if (baseDir.exists()) {
                     final FileFinder finder = new FileFinder(baseDir, ".*\\.jar");
-                    final DependencyDto dependency = new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
+                    DependencyDto dependency = dependencies.get(getGroupId(referencedDC));
 
-                    for (final File path : finder.find()) {
-                        dependency.addPath(path.getAbsolutePath());
+                    if (dependency == null) {
+                        dependency = new DependencyDto(getGroupId(referencedDC), getArtifactId(referencedDC));
+                        dependencies.put(dependency.getGroupId(), dependency);
                     }
 
-                    paths.add(dependency);
+                    for (final File path : finder.find()) {
+                        dependency.addPath(path);
+                    }
                 }
             }
         }
 
-        return paths;
+        return dependencies.values();
+    }
+
+    public class Path {
+        private final String path;
+        private final String name;
+
+        Path(final File path) {
+            this.path = path.getAbsolutePath();
+            name = path.getName().replaceAll("~", "-");
+        }
+
+        /**
+         * @return the path
+         */
+        public String getPath() {
+            return path;
+        }
+
+        /**
+         * @return the name
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * {@inheritdoc}
+         */
+        @Override
+        public int hashCode() {
+            return path.hashCode();
+        }
+
+        /**
+         * {@inheritdoc}
+         */
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof Path)) {
+                return false;
+            }
+            final Path other = (Path)obj;
+
+            if (path == null) {
+                if (other.path != null) {
+                    return false;
+                }
+            }
+            else if (!path.equals(other.path)) {
+                return false;
+            }
+            return true;
+        }
+
+        private SonarPomGenerator getOuterType() {
+            return SonarPomGenerator.this;
+        }
     }
 
     public class DependencyDto {
-        private final Collection<String> paths = new HashSet<String>();
+        private final Collection<Path> paths = new HashSet<Path>();
         private final String groupId;
         private final String artifactId;
+
+        /**
+         * {@inheritdoc}
+         */
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + artifactId.hashCode();
+            result = prime * result + groupId.hashCode();
+            return result;
+        }
+
+        /**
+         * {@inheritdoc}
+         */
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (!(obj instanceof DependencyDto)) {
+                return false;
+            }
+            final DependencyDto other = (DependencyDto)obj;
+
+            if (artifactId == null) {
+                if (other.artifactId != null) {
+                    return false;
+                }
+            }
+            else if (!artifactId.equals(other.artifactId)) {
+                return false;
+            }
+            if (groupId == null) {
+                if (other.groupId != null) {
+                    return false;
+                }
+            }
+            else if (!groupId.equals(other.groupId)) {
+                return false;
+            }
+            return true;
+        }
 
         DependencyDto(final String groupId, final String artifactId) {
             this.groupId = groupId;
             this.artifactId = artifactId;
         }
 
-        void addPath(final String path) {
-            paths.add(path);
+        void addPath(final File path) {
+            paths.add(new Path(path));
         }
 
         /**
          * @return the path
          */
-        public Collection<String> getPaths() {
+        public Collection<Path> getPaths() {
             return paths;
         }
 
@@ -170,6 +270,10 @@ public class SonarPomGenerator {
          */
         public String getArtifactId() {
             return artifactId;
+        }
+
+        public String getArtifactId(final Path path) {
+            return artifactId + "-" + path.getName();
         }
     }
 }
