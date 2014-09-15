@@ -27,6 +27,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
+import com.ibm.icu.util.Calendar;
+
 /**
  * Unittest for {@link SonarPomGenerator}.
  * 
@@ -71,7 +73,8 @@ public class SonarPomGeneratorTest extends XMLTestCase {
 
         dcFactory = new DevelopmentComponentFactory();
         antHelper = Mockito.mock(AntHelper.class);
-        generator = new SonarPomGenerator(antHelper, dcFactory, new VelocityHelper().getVelocityEngine());
+        generator =
+            new SonarPomGenerator(antHelper, dcFactory, new VelocityHelper().getVelocityEngine(), Calendar.getInstance().getTimeInMillis());
     }
 
     /**
@@ -120,6 +123,7 @@ public class SonarPomGeneratorTest extends XMLTestCase {
         try {
             final StringWriter result = new StringWriter();
             generator.execute(component, result);
+            System.err.println(result);
             assertXpathEvaluatesTo(expected, xPath, result.toString());
         }
         catch (final XpathException e) {
