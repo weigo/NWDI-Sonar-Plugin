@@ -38,13 +38,16 @@ public class SonarPomGenerator {
     private final VelocityEngine engine;
     private final AntHelper antHelper;
     private final DevelopmentComponentFactory dcFactory;
+    private final long buildNumber;
 
     private final ExcludesFactory excludesFactory = new ExcludesFactory();
 
-    SonarPomGenerator(final AntHelper antHelper, final DevelopmentComponentFactory dcFactory, final VelocityEngine engine) {
+    SonarPomGenerator(final AntHelper antHelper, final DevelopmentComponentFactory dcFactory, final VelocityEngine engine,
+        final long buildNumber) {
         this.antHelper = antHelper;
         this.dcFactory = dcFactory;
         this.engine = engine;
+        this.buildNumber = buildNumber;
     }
 
     void execute(final DevelopmentComponent component, final Writer writer) throws IOException {
@@ -69,6 +72,7 @@ public class SonarPomGenerator {
         context.put("sources", antHelper.createSourceFileSets(component));
         context.put("testSources", component.getTestSourceFolders());
         context.put("resources", component.getResourceFolders());
+        context.put("buildNumber", buildNumber);
 
         final DevelopmentConfiguration config = component.getCompartment().getDevelopmentConfiguration();
         context.put("targetVersion", config.getSourceVersion());
@@ -78,13 +82,11 @@ public class SonarPomGenerator {
     }
 
     /**
-     * Create the 'sonar.exclusions' property to a comma separated list of files
-     * to exclude from analysis.
+     * Create the 'sonar.exclusions' property to a comma separated list of files to exclude from analysis.
      * 
      * @param component
      *            development component to generate exclusions for.
-     * @return comma separated list of exclusions for the given development
-     *         component.
+     * @return comma separated list of exclusions for the given development component.
      */
     private String createExclusions(final DevelopmentComponent component) {
         return StringUtils.join(excludesFactory.create(component, Collections.<String> emptyList()), ',');

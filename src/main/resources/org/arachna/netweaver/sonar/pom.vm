@@ -4,13 +4,13 @@
 
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.${buildNumber}-SNAPSHOT</version>
   <name>$component.getName()</name>
   <description>$component.getDescription()</description>
 
   <properties>
     <source.encoding>UTF-8</source.encoding>
-    <default.version>1.0.0-SNAPSHOT</default.version>
+    <default.version>1.0.${buildNumber}-SNAPSHOT</default.version>
 #if($sonarExclusions)    
     <sonar.exclusions>$sonarExclusions</sonar.exclusions>
 #end
