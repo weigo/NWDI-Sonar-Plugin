@@ -16,7 +16,7 @@
 #end
 #if($sources)  
     <sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
-    <sonar.phase>generate-sources</sonar.phase>
+    <!--sonar.phase>generate-sources</sonar.phase-->
 #end
   </properties>
 
