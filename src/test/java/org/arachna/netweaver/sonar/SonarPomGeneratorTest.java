@@ -116,7 +116,7 @@ public class SonarPomGeneratorTest extends XMLTestCase {
     public final void testExecuteWithOneSourceFolder() throws IOException {
         final String loneSourceDir = "packages";
         Mockito.when(antHelper.createSourceFileSets(component)).thenReturn(Arrays.asList(loneSourceDir));
-        assertXpathEvaluatesTo(loneSourceDir, "/project/build/sourceDirectory/text()");
+        assertXpathEvaluatesTo(loneSourceDir, "/project/build/plugins/plugin/executions/execution/configuration/sources/source/text()");
     }
 
     private void assertXpathEvaluatesTo(final String expected, final String xPath) {

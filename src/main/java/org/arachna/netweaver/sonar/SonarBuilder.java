@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 
 import org.arachna.ant.AntHelper;
 import org.arachna.netweaver.dc.types.DevelopmentComponent;
+import org.arachna.netweaver.dc.types.DevelopmentComponentType;
 import org.arachna.netweaver.hudson.nwdi.DCWithJavaSourceAcceptingFilter;
 import org.arachna.netweaver.hudson.nwdi.NWDIBuild;
 import org.arachna.netweaver.hudson.nwdi.NWDIProject;
@@ -70,7 +71,7 @@ public class SonarBuilder extends Builder {
 
             for (final DevelopmentComponent component : nwdiBuild.getAffectedDevelopmentComponents(new DCWithJavaSourceAcceptingFilter())) {
                 if (component.getCompartment() != null) {
-                    if (!antHelper.createSourceFileSets(component).isEmpty()) {
+                    if (!antHelper.createSourceFileSets(component).isEmpty() || !component.getResourceFolders().isEmpty()) {
                         try {
                             pomLocation = String.format("%s/sonar-pom.xml", antHelper.getBaseLocation(component));
                             pomGenerator.execute(component, new FileWriter(pomLocation));
@@ -78,6 +79,12 @@ public class SonarBuilder extends Builder {
                             result |=
                                 new Maven("test sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild,
                                     launcher, listener);
+                            
+                            if (component.getType().equals(DevelopmentComponentType.J2EEWebModule)) {
+                                result |=
+                                    new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions + " -Dsonar.language=js").perform(nwdiBuild,
+                                        launcher, listener);
+                            }
                         }
                         catch (final IOException ioe) {
                             Logger.getLogger("NWDI-Sonar-Plugin").warning(
