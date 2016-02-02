@@ -69,6 +69,9 @@
 #foreach($src in $sources) 
                 <source>$src</source>
 #end
+#foreach($resource in $resources)              
+                <source>$resource</source>
+#end                
               </sources>
             </configuration>
           </execution>
