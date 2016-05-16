@@ -5,12 +5,13 @@
   <groupId>$groupId</groupId>
   <artifactId>$artifactId</artifactId>
   <version>1.0.${buildNumber}-SNAPSHOT</version>
-  <name>$component.getName()</name>
+  <name>$componentName</name>
   <description>$component.getDescription()</description>
 
   <properties>
     <source.encoding>UTF-8</source.encoding>
     <default.version>1.0.${buildNumber}-SNAPSHOT</default.version>
+    <sonar.language>$sonarLanguage</sonar.language>
 #if($sonarExclusions)    
     <sonar.exclusions>$sonarExclusions</sonar.exclusions>
 #end

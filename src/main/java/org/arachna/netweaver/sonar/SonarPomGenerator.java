@@ -50,8 +50,8 @@ public class SonarPomGenerator {
         this.buildNumber = buildNumber;
     }
 
-    void execute(final DevelopmentComponent component, final Writer writer) throws IOException {
-        engine.evaluate(createContext(component), writer, "", getTemplate());
+    void execute(final DevelopmentComponent component, final Writer writer, final SonarLanguage sonarLanguage) throws IOException {
+        engine.evaluate(createContext(component, sonarLanguage), writer, "", getTemplate());
         writer.close();
     }
 
@@ -62,17 +62,19 @@ public class SonarPomGenerator {
         return new InputStreamReader(getClass().getResourceAsStream("/org/arachna/netweaver/sonar/pom.vm"));
     }
 
-    private Context createContext(final DevelopmentComponent component) {
+    private Context createContext(final DevelopmentComponent component, final SonarLanguage sonarLanguage) {
         final Context context = new VelocityContext();
         context.put("component", component);
         context.put("groupId", getGroupId(component));
-        context.put("artifactId", getArtifactId(component));
+        context.put("artifactId", getArtifactId(component) + sonarLanguage.getProjectSuffix());
         context.put("targetFolder", component.getOutputFolder());
         context.put("sonarExclusions", createExclusions(component));
         context.put("sources", antHelper.createSourceFileSets(component));
         context.put("testSources", component.getTestSourceFolders());
         context.put("resources", component.getResourceFolders());
         context.put("buildNumber", buildNumber);
+        context.put("sonarLanguage", sonarLanguage.getKey());
+        context.put("componentName", component.getName() + sonarLanguage.getProjectSuffix());
 
         final DevelopmentConfiguration config = component.getCompartment().getDevelopmentConfiguration();
         context.put("targetVersion", config.getSourceVersion());
@@ -93,8 +95,8 @@ public class SonarPomGenerator {
     }
 
     private String getGroupId(final DevelopmentComponent component) {
-        return String.format("%s.%s", component.getCompartment().getDevelopmentConfiguration().getName(), component.getCompartment()
-            .getName());
+        return String.format("%s.%s", component.getCompartment().getDevelopmentConfiguration().getName(),
+            component.getCompartment().getName());
     }
 
     private String getArtifactId(final DevelopmentComponent component) {
@@ -129,7 +131,7 @@ public class SonarPomGenerator {
         return dependencies.values();
     }
 
-    public class Path {
+    public static class Path {
         private final String path;
         private final String name;
 
@@ -185,10 +187,6 @@ public class SonarPomGenerator {
                 return false;
             }
             return true;
-        }
-
-        private SonarPomGenerator getOuterType() {
-            return SonarPomGenerator.this;
         }
     }
 

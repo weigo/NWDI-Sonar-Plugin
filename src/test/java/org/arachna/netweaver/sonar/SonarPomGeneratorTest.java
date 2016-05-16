@@ -122,7 +122,7 @@ public class SonarPomGeneratorTest extends XMLTestCase {
     private void assertXpathEvaluatesTo(final String expected, final String xPath) {
         try {
             final StringWriter result = new StringWriter();
-            generator.execute(component, result);
+            generator.execute(component, result, SonarLanguage.JAVA);
             System.err.println(result);
             assertXpathEvaluatesTo(expected, xPath, result.toString());
         }

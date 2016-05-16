@@ -3,30 +3,29 @@
  */
 package org.arachna.netweaver.sonar;
 
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.Builder;
-import hudson.tasks.Maven;
-import hudson.tasks.Maven.MavenInstallation;
-import hudson.tools.ToolInstallation;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.arachna.ant.AntHelper;
 import org.arachna.netweaver.dc.types.DevelopmentComponent;
-import org.arachna.netweaver.dc.types.DevelopmentComponentType;
 import org.arachna.netweaver.hudson.nwdi.DCWithJavaSourceAcceptingFilter;
 import org.arachna.netweaver.hudson.nwdi.NWDIBuild;
 import org.arachna.netweaver.hudson.nwdi.NWDIProject;
 import org.arachna.netweaver.hudson.util.FilePathHelper;
 import org.arachna.velocity.VelocityHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import hudson.Extension;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.tasks.Maven;
+import hudson.tasks.Maven.MavenInstallation;
+import hudson.tools.ToolInstallation;
 
 /**
  * Jenkins builder that executes the maven sonar plugin for NetWeaver development components.
@@ -57,38 +56,20 @@ public class SonarBuilder extends Builder {
         final NWDIBuild nwdiBuild = (NWDIBuild)build;
         final AntHelper antHelper =
             new AntHelper(FilePathHelper.makeAbsolute(build.getWorkspace()), nwdiBuild.getDevelopmentComponentFactory());
-        final SonarPomGenerator pomGenerator =
-            new SonarPomGenerator(antHelper, nwdiBuild.getDevelopmentComponentFactory(), new VelocityHelper().getVelocityEngine(),
-                nwdiBuild.getNumber());
-        String pomLocation = "";
+        final SonarPomGenerator pomGenerator = new SonarPomGenerator(antHelper, nwdiBuild.getDevelopmentComponentFactory(),
+            new VelocityHelper().getVelocityEngine(), nwdiBuild.getNumber());
 
         final MavenInstallation maven = getRequiredMavenInstallation(launcher);
 
         if (maven != null) {
-            // FIXME: get JVM options from configuration.
-            final String jvmOptions = "";
-            final String properties = "";
+            SonarCubeAnalysisExecutor analysisExecutor =
+                new SonarCubeAnalysisExecutor(nwdiBuild, antHelper, pomGenerator, maven, launcher, listener);
 
             for (final DevelopmentComponent component : nwdiBuild.getAffectedDevelopmentComponents(new DCWithJavaSourceAcceptingFilter())) {
                 if (component.getCompartment() != null) {
                     if (!antHelper.createSourceFileSets(component).isEmpty() || !component.getResourceFolders().isEmpty()) {
-                        try {
-                            pomLocation = String.format("%s/sonar-pom.xml", antHelper.getBaseLocation(component));
-                            pomGenerator.execute(component, new FileWriter(pomLocation));
-
-                            result |=
-                                new Maven("test sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild,
-                                    launcher, listener);
-                            
-                            if (component.getType().equals(DevelopmentComponentType.J2EEWebModule)) {
-                                result |=
-                                    new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions + " -Dsonar.language=js").perform(nwdiBuild,
-                                        launcher, listener);
-                            }
-                        }
-                        catch (final IOException ioe) {
-                            Logger.getLogger("NWDI-Sonar-Plugin").warning(
-                                String.format("Could not create %s:\n%s", pomLocation, ioe.getMessage()));
+                        for (SonarLanguage language : SonarLanguage.getSonarLanguages(component)) {
+                            result |= analysisExecutor.execute(component, language);
                         }
                     }
                 }
@@ -102,6 +83,46 @@ public class SonarBuilder extends Builder {
         }
 
         return result;
+    }
+
+    private static class SonarCubeAnalysisExecutor {
+        private final NWDIBuild nwdiBuild;
+        private final AntHelper antHelper;
+        private final SonarPomGenerator pomGenerator;
+        private final MavenInstallation maven;
+        private Launcher launcher;
+        private BuildListener listener;
+
+        SonarCubeAnalysisExecutor(final NWDIBuild nwdiBuild, final AntHelper antHelper, final SonarPomGenerator pomGenerator,
+            final MavenInstallation maven, final Launcher launcher, final BuildListener listener) {
+            this.nwdiBuild = nwdiBuild;
+            this.antHelper = antHelper;
+            this.pomGenerator = pomGenerator;
+            this.maven = maven;
+            this.launcher = launcher;
+            this.listener = listener;
+        }
+
+        boolean execute(DevelopmentComponent component, final SonarLanguage sonarLanguage) throws InterruptedException {
+            // FIXME: get JVM options from configuration.
+            final String jvmOptions = "";
+            final String properties = "";
+            final String pomLocation =
+                String.format("%s/sonar-pom%s.xml", antHelper.getBaseLocation(component), sonarLanguage.getProjectSuffix());
+            boolean result = false;
+
+            try {
+                pomGenerator.execute(component, new FileWriter(pomLocation), sonarLanguage);
+
+                result = new Maven(sonarLanguage.getMavenTargets(), maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild,
+                    launcher, listener);
+            }
+            catch (IOException ioe) {
+                Logger.getLogger("NWDI-Sonar-Plugin").warning(String.format("Could not create %s:\n%s", pomLocation, ioe.getMessage()));
+            }
+
+            return result;
+        }
     }
 
     private MavenInstallation getRequiredMavenInstallation(final Launcher launcher) throws IOException, InterruptedException {
