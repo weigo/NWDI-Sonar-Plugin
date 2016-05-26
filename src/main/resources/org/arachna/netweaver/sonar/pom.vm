@@ -14,10 +14,6 @@
 #if($sonarExclusions)    
     <sonar.exclusions>$sonarExclusions</sonar.exclusions>
 #end
-#if($sources)  
-    <sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
-    <!--sonar.phase>generate-sources</sonar.phase-->
-#end
   </properties>
 
   <scm>
@@ -69,6 +65,9 @@
 #foreach($src in $sources) 
                 <source>$src</source>
 #end
+#foreach($resource in $resources)              
+                <source>$resource</source>
+#end                
               </sources>
             </configuration>
           </execution>
@@ -111,7 +110,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>2.4</version>
+          <version>2.6</version>
         </plugin>
       </plugins>
     </pluginManagement>
