@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
-import com.ibm.icu.util.Calendar;
 
 /**
  * Unittest for {@link SonarPomGenerator}.
