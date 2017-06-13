@@ -6,7 +6,7 @@
   <artifactId>$artifactId</artifactId>
   <version>1.0.${buildNumber}-SNAPSHOT</version>
   <name>$component.getName()</name>
-  <description>$component.getDescription()</description>
+  <description>${description}</description>
 
   <properties>
     <source.encoding>UTF-8</source.encoding>

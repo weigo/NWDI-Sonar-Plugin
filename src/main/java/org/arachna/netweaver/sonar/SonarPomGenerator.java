@@ -73,6 +73,7 @@ public class SonarPomGenerator {
         context.put("testSources", component.getTestSourceFolders());
         context.put("resources", component.getResourceFolders());
         context.put("buildNumber", buildNumber);
+        context.put("description", component.getCompartment().getDevelopmentConfiguration().getName()+"-"+component.getDescription());
 
         final DevelopmentConfiguration config = component.getCompartment().getDevelopmentConfiguration();
         context.put("targetVersion", config.getSourceVersion());
