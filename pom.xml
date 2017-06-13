@@ -81,6 +81,26 @@
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.4</version>
+					<configuration>
+						<doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+						<docletArtifact>
+							<groupId>org.umlgraph</groupId>
+							<artifactId>doclet</artifactId>
+							<version>5.1</version>
+						</docletArtifact>
+						<additionalparam>-Xdoclint:none -ranksep 1 -nodesep 1 -inferdep
+							-quiet -hide
+							java.* -collpackages java.util.* -qualify
+							-postfixpackage
+							-nodefontsize 9 -nodefontpackagesize 7</additionalparam>
+						<useStandardDocletOptions>true</useStandardDocletOptions>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5.3</version>
 				</plugin>
