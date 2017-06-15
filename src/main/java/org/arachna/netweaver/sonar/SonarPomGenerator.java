@@ -71,7 +71,7 @@ public class SonarPomGenerator {
         context.put("sonarExclusions", createExclusions(component));
         context.put("sources", antHelper.createSourceFileSets(component));
         context.put("testSources", component.getTestSourceFolders());
-        context.put("resources", component.getResourceFolders());
+        context.put("resources", antHelper.createResourceFileSets(component));
         context.put("buildNumber", buildNumber);
         context.put("dcName", component.getCompartment().getDevelopmentConfiguration().getName());
 
