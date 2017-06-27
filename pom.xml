@@ -46,24 +46,18 @@
 	</pluginRepositories>
 
 	<scm>
-<<<<<<< Updated upstream
-		<connection>scm:git:git://github.com/comdata/NWDI-JavaDoc-Plugin.git</connection>
-		<developerConnection>scm:git:git@github.com:comdata/NWDI-JavaDoc-Plugin.git</developerConnection>
-		<url>https://github.com/comdata/NWDI-JavaDoc-Plugin</url>
-	</scm>
-	<developers>
-		<developer>
-			<id>weigo</id>
-			<name>Dirk Weigenand</name>
-			<email>Dirk.Weigenand@gmx.de</email>
-		</developer>
-		<developer>
-			<id>comdata</id>
-			<name>Christoph Mertins</name>
-			<email>c.mertins@gmail.com</email>
-		</developer>
-	</developers>
-=======
+		<developers>
+			<developer>
+				<id>weigo</id>
+				<name>Dirk Weigenand</name>
+				<email>Dirk.Weigenand@gmx.de</email>
+			</developer>
+			<developer>
+				<id>comdata</id>
+				<name>Christoph Mertins</name>
+				<email>c.mertins@gmail.com</email>
+			</developer>
+		</developers>
 		<connection>scm:git:git://github.com/comdata/NWDI-Sonar-Plugin.git</connection>
 		<developerConnection>scm:git:git@github.com:comdata/NWDI-Sonar-Plugin.git</developerConnection>
 		<url>https://github.com/comdata/NWDI-Sonar-Plugin</url>
@@ -72,7 +66,6 @@
 
 
 
->>>>>>> Stashed changes
 	<dependencies>
 		<dependency>
 			<groupId>org.arachna.netweaver</groupId>
