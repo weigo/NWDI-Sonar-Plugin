@@ -14,6 +14,11 @@
 	<description>Jenkins plugin for analysing Java sources of SAP NetWeaver development components with Sonar.</description>
 	<inceptionYear>2013</inceptionYear>
 
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<NWDI-config-plugin.version>1.0.11</NWDI-config-plugin.version>
+	</properties>
+
 	<repositories>
 		<repository>
 			<snapshots>
@@ -41,14 +46,22 @@
 	</pluginRepositories>
 
 	<scm>
-		<connection>scm:git:git://github.com/comdata/NWDI-Sonar-Plugin.git</connection>
-		<developerConnection>scm:git:git@github.com:comdata/NWDI-Sonar-Plugin.git</developerConnection>
-		<url>https://github.com/comdata/NWDI-Sonar-Plugin</url>
-	  <tag>HEAD</tag>
-  </scm>
-
-
-
+		<connection>scm:git:git://github.com/comdata/NWDI-JavaDoc-Plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:comdata/NWDI-JavaDoc-Plugin.git</developerConnection>
+		<url>https://github.com/comdata/NWDI-JavaDoc-Plugin</url>
+	</scm>
+	<developers>
+		<developer>
+			<id>weigo</id>
+			<name>Dirk Weigenand</name>
+			<email>Dirk.Weigenand@gmx.de</email>
+		</developer>
+		<developer>
+			<id>comdata</id>
+			<name>Christoph Mertins</name>
+			<email>c.mertins@gmail.com</email>
+		</developer>
+	</developers>
 	<dependencies>
 		<dependency>
 			<groupId>org.arachna.netweaver</groupId>
@@ -75,8 +88,32 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jenkins-ci.tools</groupId>
+				<artifactId>maven-hpi-plugin</artifactId>
+				<configuration>
+					<disabledTestInjection>true</disabledTestInjection>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${java.source.version}</source>
+					<target>${java.source.version}</target>
+					<compilerArgument>-g</compilerArgument>
+					<compilerArgument>-Xlint:unchecked</compilerArgument>
+					<debuglevel>lines,vars,source</debuglevel>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+			</plugin>
+		</plugins>
 		<pluginManagement>
 			<plugins>
 				<plugin>
