@@ -9,7 +9,7 @@
 	<groupId>org.arachna.netweaver</groupId>
 	<artifactId>NWDI-Sonar</artifactId>
 	<name>NWDI-Sonar</name>
-	<version>1.2-SNAPSHOT</version>
+	<version>1.5</version>
 	<packaging>hpi</packaging>
 	<description>Jenkins plugin for analysing Java sources of SAP NetWeaver development components with Sonar.</description>
 	<inceptionYear>2013</inceptionYear>
