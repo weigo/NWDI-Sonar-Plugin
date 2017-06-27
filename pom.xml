@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.arachna.netweaver</groupId>
@@ -45,24 +46,26 @@
 		</pluginRepository>
 	</pluginRepositories>
 
+	<developers>
+		<developer>
+			<id>weigo</id>
+			<name>Dirk Weigenand</name>
+			<email>Dirk.Weigenand@gmx.de</email>
+		</developer>
+		<developer>
+			<id>comdata</id>
+			<name>Christoph Mertins</name>
+			<email>c.mertins@gmail.com</email>
+		</developer>
+	</developers>
+
 	<scm>
-		<developers>
-			<developer>
-				<id>weigo</id>
-				<name>Dirk Weigenand</name>
-				<email>Dirk.Weigenand@gmx.de</email>
-			</developer>
-			<developer>
-				<id>comdata</id>
-				<name>Christoph Mertins</name>
-				<email>c.mertins@gmail.com</email>
-			</developer>
-		</developers>
+
 		<connection>scm:git:git://github.com/comdata/NWDI-Sonar-Plugin.git</connection>
 		<developerConnection>scm:git:git@github.com:comdata/NWDI-Sonar-Plugin.git</developerConnection>
 		<url>https://github.com/comdata/NWDI-Sonar-Plugin</url>
-	  <tag>NWDI-Sonar-1.5</tag>
-  </scm>
+		<tag>NWDI-Sonar-1.5</tag>
+	</scm>
 
 
 
