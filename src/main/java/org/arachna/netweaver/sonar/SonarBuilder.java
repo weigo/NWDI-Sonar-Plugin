@@ -80,16 +80,22 @@ public class SonarBuilder extends Builder {
                                 new Maven("test sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild,
                                     launcher, listener);
                             
+                            listener.getLogger().println(String.format("Component %s is of type %s.",component.getName(), component.getType()));
+                            
                             if (component.getType().equals(DevelopmentComponentType.J2EEWebModule)) {
                                 result |=
                                     new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions + " -Dsonar.language=js").perform(nwdiBuild,
                                         launcher, listener);
+                            } else {
+                            	listener.getLogger().println(String.format("Component %s is not a web module.",component.getName()));
                             }
                         }
                         catch (final IOException ioe) {
                             Logger.getLogger("NWDI-Sonar-Plugin").warning(
                                 String.format("Could not create %s:\n%s", pomLocation, ioe.getMessage()));
                         }
+                    } else {
+                    	listener.getLogger().println(String.format("Component %s has empty source or resource folders.",component.getName()));
                     }
                 }
                 else {
