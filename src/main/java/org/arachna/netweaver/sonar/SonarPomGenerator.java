@@ -22,6 +22,7 @@ import org.arachna.ant.AntHelper;
 import org.arachna.ant.ExcludesFactory;
 import org.arachna.netweaver.dc.types.DevelopmentComponent;
 import org.arachna.netweaver.dc.types.DevelopmentComponentFactory;
+import org.arachna.netweaver.dc.types.DevelopmentComponentType;
 import org.arachna.netweaver.dc.types.DevelopmentConfiguration;
 import org.arachna.netweaver.dc.types.PublicPartReference;
 import org.arachna.util.io.FileFinder;
@@ -69,6 +70,7 @@ public class SonarPomGenerator {
         context.put("artifactId", getArtifactId(component));
         context.put("targetFolder", component.getOutputFolder());
         context.put("sonarExclusions", createExclusions(component));
+        context.put("sonarSources", createSonarSources(component));
         context.put("sources", antHelper.createSourceFileSets(component));
         context.put("testSources", component.getTestSourceFolders());
         context.put("resources", antHelper.createResourceFileSets(component));
@@ -82,7 +84,25 @@ public class SonarPomGenerator {
         return context;
     }
 
-    /**
+    private String createSonarSources(DevelopmentComponent component) {
+    	
+    	DevelopmentComponentType componentType = component.getType();
+    	if (DevelopmentComponentType.J2EEEjbModule.equals(componentType)) {
+    		return "ejbModule";
+    	}
+    	
+    	if (DevelopmentComponentType.J2EEWebModule.equals(componentType)) {
+    		return "WebContent,source";
+    	}
+
+    	if (DevelopmentComponentType.J2EE.equals(componentType)) {
+    		return "source";
+    	}
+    	
+		return "";
+	}
+
+	/**
      * Create the 'sonar.exclusions' property to a comma separated list of files to exclude from analysis.
      * 
      * @param component
