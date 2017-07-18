@@ -84,8 +84,10 @@ public class SonarBuilder extends Builder {
                             
                             if (component.getType().equals(DevelopmentComponentType.J2EEWebModule)) {
                                 result |=
-                                    new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions + " -Dsonar.language=js").perform(nwdiBuild,
+                                    new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions ).perform(nwdiBuild,
                                         launcher, listener);
+                                
+                                //+ " -Dsonar.language=js"
                             } else {
                             	listener.getLogger().println(String.format("Component %s is not a web module.",component.getName()));
                             }
