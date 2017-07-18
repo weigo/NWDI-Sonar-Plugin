@@ -26,6 +26,7 @@ import org.arachna.netweaver.dc.types.DevelopmentComponentType;
 import org.arachna.netweaver.dc.types.DevelopmentConfiguration;
 import org.arachna.netweaver.dc.types.PublicPartReference;
 import org.arachna.util.io.FileFinder;
+import org.eclipse.jetty.servlet.BaseHolder.Source;
 
 /**
  * Generator for pom.xml files with dependencies for sonar configured.
@@ -86,17 +87,49 @@ public class SonarPomGenerator {
 
     private String createSonarSources(DevelopmentComponent component) {
     	
+ 
+    	
+    	String baseLocation = antHelper.getBaseLocation(component);
+
+    	
     	DevelopmentComponentType componentType = component.getType();
     	if (DevelopmentComponentType.J2EEEjbModule.equals(componentType)) {
-    		return "ejbModule";
+    		
+    		if (new File(baseLocation+File.separator+"ejbModule").exists()) {
+    			return "ejbModule";
+    		}
     	}
     	
     	if (DevelopmentComponentType.J2EEWebModule.equals(componentType)) {
-    		return "WebContent,source";
+    		String sources="";
+    		if (new File(baseLocation+File.separator+"WebContent").exists()) {
+    			sources+="WebContent";
+    		}
+    		
+    		if (new File(baseLocation+File.separator+"source").exists()) {
+    			if (!sources.isEmpty()) {
+    				sources+=",";
+    			}
+    			
+    			sources+="source";
+    		}
+
+    		if (new File(baseLocation+File.separator+"test").exists()) {
+    			if (!sources.isEmpty()) {
+    				sources+=",";
+    			}
+    			
+    			sources+="test";
+    		}
+    		
+    		return sources;
     	}
 
     	if (DevelopmentComponentType.J2EE.equals(componentType)) {
-    		return "source";
+    		if (new File(baseLocation+File.separator+"source").exists()) {
+    			return "source";
+    		}
+
     	}
     	
 		return "";
