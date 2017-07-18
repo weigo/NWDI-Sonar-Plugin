@@ -11,7 +11,7 @@
   <properties>
     <source.encoding>UTF-8</source.encoding>
     <default.version>1.0.${buildNumber}-SNAPSHOT</default.version>
-    <sonar.sources>WebContent, source, ejbModule</sonar.sources>
+    <sonar.sources>WebContent,source,ejbModule</sonar.sources>
 #if($sonarExclusions)    
     <sonar.exclusions>$sonarExclusions</sonar.exclusions>
 #end
