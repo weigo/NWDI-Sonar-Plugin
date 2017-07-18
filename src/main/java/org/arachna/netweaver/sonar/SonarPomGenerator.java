@@ -26,7 +26,6 @@ import org.arachna.netweaver.dc.types.DevelopmentComponentType;
 import org.arachna.netweaver.dc.types.DevelopmentConfiguration;
 import org.arachna.netweaver.dc.types.PublicPartReference;
 import org.arachna.util.io.FileFinder;
-import org.eclipse.jetty.servlet.BaseHolder.Source;
 
 /**
  * Generator for pom.xml files with dependencies for sonar configured.
@@ -67,7 +66,7 @@ public class SonarPomGenerator {
     private Context createContext(final DevelopmentComponent component) {
         final Context context = new VelocityContext();
         context.put("component", component);
-        context.put("groupId", getGroupId(component));
+        context.put("groupId", getGroupId(component)); 
         context.put("artifactId", getArtifactId(component));
         context.put("targetFolder", component.getOutputFolder());
         context.put("sonarExclusions", createExclusions(component));
