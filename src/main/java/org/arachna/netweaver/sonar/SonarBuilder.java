@@ -29,141 +29,152 @@ import org.arachna.velocity.VelocityHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Jenkins builder that executes the maven sonar plugin for NetWeaver development components.
+ * Jenkins builder that executes the maven sonar plugin for NetWeaver
+ * development components.
  * 
  * @author Dirk Weigenand
  */
 public class SonarBuilder extends Builder {
-    /**
-     * Descriptor for {@link SonarBuilder}.
-     */
-    @Extension
-    public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
+	/**
+	 * Descriptor for {@link SonarBuilder}.
+	 */
+	@Extension
+	public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
-    /**
-     * Data bound constructor. Used for populating a {@link SonarBuilder} instance from form fields in <code>config.jelly</code>.
-     */
-    @DataBoundConstructor
-    public SonarBuilder() {
-    }
+	/**
+	 * Data bound constructor. Used for populating a {@link SonarBuilder} instance
+	 * from form fields in <code>config.jelly</code>.
+	 */
+	@DataBoundConstructor
+	public SonarBuilder() {
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
-        throws InterruptedException, IOException {
-        boolean result = true;
-        final NWDIBuild nwdiBuild = (NWDIBuild)build;
-        final AntHelper antHelper =
-            new AntHelper(FilePathHelper.makeAbsolute(build.getWorkspace()), nwdiBuild.getDevelopmentComponentFactory());
-        final SonarPomGenerator pomGenerator =
-            new SonarPomGenerator(antHelper, nwdiBuild.getDevelopmentComponentFactory(), new VelocityHelper().getVelocityEngine(),
-                nwdiBuild.getNumber());
-        String pomLocation = "";
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener)
+			throws InterruptedException, IOException {
+		boolean result = true;
+		final NWDIBuild nwdiBuild = (NWDIBuild) build;
+		final AntHelper antHelper = new AntHelper(FilePathHelper.makeAbsolute(build.getWorkspace()),
+				nwdiBuild.getDevelopmentComponentFactory());
+		final SonarPomGenerator pomGenerator = new SonarPomGenerator(antHelper,
+				nwdiBuild.getDevelopmentComponentFactory(), new VelocityHelper().getVelocityEngine(),
+				nwdiBuild.getNumber());
+		String pomLocation = "";
 
-        final MavenInstallation maven = getRequiredMavenInstallation(launcher);
+		final MavenInstallation maven = getRequiredMavenInstallation(launcher);
 
-        if (maven != null) {
-            // FIXME: get JVM options from configuration.
-            final String jvmOptions = "";
-            final String properties = "";
+		if (maven != null) {
+			// FIXME: get JVM options from configuration.
+			final String jvmOptions = "";
+			final String properties = "";
 
-            for (final DevelopmentComponent component : nwdiBuild.getAffectedDevelopmentComponents(new DCWithJavaSourceAcceptingFilter())) {
-                if (component.getCompartment() != null) {
-                    if (!antHelper.createSourceFileSets(component).isEmpty() || !component.getResourceFolders().isEmpty()) {
-                        try {
-                            pomLocation = String.format("%s/sonar-pom.xml", antHelper.getBaseLocation(component));
-                            pomGenerator.execute(component, new FileWriter(pomLocation));
+			for (final DevelopmentComponent component : nwdiBuild
+					.getAffectedDevelopmentComponents(new DCWithJavaSourceAcceptingFilter())) {
+				if (component.getCompartment() != null) {
+					if (!antHelper.createSourceFileSets(component).isEmpty()
+							|| !component.getResourceFolders().isEmpty()) {
+						try {
+							pomLocation = String.format("%s/sonar-pom.xml", antHelper.getBaseLocation(component));
+							pomGenerator.execute(component, new FileWriter(pomLocation));
 
-                            result |=
-                                new Maven("test sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions).perform(nwdiBuild,
-                                    launcher, listener);
-                            
-                            listener.getLogger().println(String.format("Component %s is of type %s.",component.getName(), component.getType()));
-                            
-                            if (component.getType().equals(DevelopmentComponentType.J2EEWebModule)) {
-                                result |=
-                                    new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions ).perform(nwdiBuild,
-                                        launcher, listener);
-                                
-                                //+ " -Dsonar.language=js"
-                            } else {
-                            	listener.getLogger().println(String.format("Component %s is not a web module.",component.getName()));
-                            }
-                        }
-                        catch (final IOException ioe) {
-                            Logger.getLogger("NWDI-Sonar-Plugin").warning(
-                                String.format("Could not create %s:\n%s", pomLocation, ioe.getMessage()));
-                        }
-                    } else {
-                    	listener.getLogger().println(String.format("Component %s has empty source or resource folders.",component.getName()));
-                    }
-                }
-                else {
-                    listener.getLogger().println(String.format("%s:%s has no compartment!", component.getVendor(), component.getName()));
-                }
-            }
-        }
-        else {
-            listener.getLogger().println("No Maven installation found!");
-        }
+							DevelopmentComponentType componentType = component.getType();
+							if (DevelopmentComponentType.J2EEEjbModule.equals(componentType)
+									|| DevelopmentComponentType.J2EEWebModule.equals(componentType)
+									|| DevelopmentComponentType.J2EE.equals(componentType)) {
+								result |= new Maven("test sonar:sonar", maven.getName(), pomLocation, properties,
+										jvmOptions).perform(nwdiBuild, launcher, listener);
 
-        return result;
-    }
+								listener.getLogger().println(String.format("Component %s is of type %s.",
+										component.getName(), component.getType()));
+							}
 
-    private MavenInstallation getRequiredMavenInstallation(final Launcher launcher) throws IOException, InterruptedException {
-        final MavenInstallation.DescriptorImpl descriptor = ToolInstallation.all().get(MavenInstallation.DescriptorImpl.class);
-        final MavenInstallation[] installations = descriptor.getInstallations();
-        MavenInstallation maven = null;
+							if (componentType.equals(DevelopmentComponentType.J2EEWebModule)) {
+								result |= new Maven("sonar:sonar", maven.getName(), pomLocation, properties, jvmOptions)
+										.perform(nwdiBuild, launcher, listener);
 
-        for (final MavenInstallation installation : installations) {
-            if (installation.getExists() && installation.meetsMavenReqVersion(launcher, MavenInstallation.MAVEN_30)) {
-                maven = installation;
-            }
-        }
+								// + " -Dsonar.language=js"
+							} else {
+								listener.getLogger().println(
+										String.format("Component %s is not a web module.", component.getName()));
+							}
+						} catch (final IOException ioe) {
+							Logger.getLogger("NWDI-Sonar-Plugin")
+									.warning(String.format("Could not create %s:\n%s", pomLocation, ioe.getMessage()));
+						}
+					} else {
+						listener.getLogger().println(String.format("Component %s has empty source or resource folders.",
+								component.getName()));
+					}
+				} else {
+					listener.getLogger().println(
+							String.format("%s:%s has no compartment!", component.getVendor(), component.getName()));
+				}
+			}
+		} else {
+			listener.getLogger().println("No Maven installation found!");
+		}
 
-        if (installations.length > 0) {
-            maven = installations[0];
-        }
+		return result;
+	}
 
-        return maven;
-    }
+	private MavenInstallation getRequiredMavenInstallation(final Launcher launcher)
+			throws IOException, InterruptedException {
+		final MavenInstallation.DescriptorImpl descriptor = ToolInstallation.all()
+				.get(MavenInstallation.DescriptorImpl.class);
+		final MavenInstallation[] installations = descriptor.getInstallations();
+		MavenInstallation maven = null;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public DescriptorImpl getDescriptor() {
-        return DESCRIPTOR;
-    }
+		for (final MavenInstallation installation : installations) {
+			if (installation.getExists() && installation.meetsMavenReqVersion(launcher, MavenInstallation.MAVEN_30)) {
+				maven = installation;
+			}
+		}
 
-    /**
-     * Descriptor for {@link SonarBuilder}.
-     */
-    public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
-        /**
-         * Create descriptor for NWDI-CheckStyle-Builder and load global configuration data.
-         */
-        public DescriptorImpl() {
-            load();
-        }
+		if (installations.length > 0) {
+			maven = installations[0];
+		}
 
-        /**
-         * 
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean isApplicable(final Class<? extends AbstractProject> aClass) {
-            return NWDIProject.class.equals(aClass);
-        }
+		return maven;
+	}
 
-        /**
-         * This human readable name is used in the configuration screen.
-         */
-        @Override
-        public String getDisplayName() {
-            return "NWDI Sonar Builder";
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public DescriptorImpl getDescriptor() {
+		return DESCRIPTOR;
+	}
+
+	/**
+	 * Descriptor for {@link SonarBuilder}.
+	 */
+	public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+		/**
+		 * Create descriptor for NWDI-CheckStyle-Builder and load global configuration
+		 * data.
+		 */
+		public DescriptorImpl() {
+			load();
+		}
+
+		/**
+		 * 
+		 * {@inheritDoc}
+		 */
+		@Override
+		public boolean isApplicable(final Class<? extends AbstractProject> aClass) {
+			return NWDIProject.class.equals(aClass);
+		}
+
+		/**
+		 * This human readable name is used in the configuration screen.
+		 */
+		@Override
+		public String getDisplayName() {
+			return "NWDI Sonar Builder";
+		}
+	}
 }
