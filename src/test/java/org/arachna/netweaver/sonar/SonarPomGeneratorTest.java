@@ -6,6 +6,7 @@ package org.arachna.netweaver.sonar;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -27,7 +28,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
-import com.ibm.icu.util.Calendar;
 
 /**
  * Unittest for {@link SonarPomGenerator}.

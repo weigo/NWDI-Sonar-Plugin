@@ -22,6 +22,7 @@ import org.arachna.ant.AntHelper;
 import org.arachna.ant.ExcludesFactory;
 import org.arachna.netweaver.dc.types.DevelopmentComponent;
 import org.arachna.netweaver.dc.types.DevelopmentComponentFactory;
+import org.arachna.netweaver.dc.types.DevelopmentComponentType;
 import org.arachna.netweaver.dc.types.DevelopmentConfiguration;
 import org.arachna.netweaver.dc.types.PublicPartReference;
 import org.arachna.util.io.FileFinder;
@@ -65,14 +66,16 @@ public class SonarPomGenerator {
     private Context createContext(final DevelopmentComponent component) {
         final Context context = new VelocityContext();
         context.put("component", component);
-        context.put("groupId", getGroupId(component));
+        context.put("groupId", getGroupId(component)); 
         context.put("artifactId", getArtifactId(component));
         context.put("targetFolder", component.getOutputFolder());
         context.put("sonarExclusions", createExclusions(component));
+        context.put("sonarSources", createSonarSources(component));
         context.put("sources", antHelper.createSourceFileSets(component));
         context.put("testSources", component.getTestSourceFolders());
-        context.put("resources", component.getResourceFolders());
+        context.put("resources", antHelper.createResourceFileSets(component));
         context.put("buildNumber", buildNumber);
+        context.put("dcName", component.getCompartment().getDevelopmentConfiguration().getName());
 
         final DevelopmentConfiguration config = component.getCompartment().getDevelopmentConfiguration();
         context.put("targetVersion", config.getSourceVersion());
@@ -81,7 +84,57 @@ public class SonarPomGenerator {
         return context;
     }
 
-    /**
+    private String createSonarSources(DevelopmentComponent component) {
+    	
+ 
+    	
+    	String baseLocation = antHelper.getBaseLocation(component);
+
+    	
+    	DevelopmentComponentType componentType = component.getType();
+    	if (DevelopmentComponentType.J2EEEjbModule.equals(componentType)) {
+    		
+    		if (new File(baseLocation+File.separator+"ejbModule").exists()) {
+    			return "ejbModule";
+    		}
+    	}
+    	
+    	if (DevelopmentComponentType.J2EEWebModule.equals(componentType)) {
+    		String sources="";
+    		if (new File(baseLocation+File.separator+"WebContent").exists()) {
+    			sources+="WebContent";
+    		}
+    		
+    		if (new File(baseLocation+File.separator+"source").exists()) {
+    			if (!sources.isEmpty()) {
+    				sources+=",";
+    			}
+    			
+    			sources+="source";
+    		}
+
+    		if (new File(baseLocation+File.separator+"test").exists()) {
+    			if (!sources.isEmpty()) {
+    				sources+=",";
+    			}
+    			
+    			sources+="test";
+    		}
+    		
+    		return sources;
+    	}
+
+    	if (DevelopmentComponentType.J2EE.equals(componentType)) {
+    		if (new File(baseLocation+File.separator+"source").exists()) {
+    			return "source";
+    		}
+
+    	}
+    	
+		return "";
+	}
+
+	/**
      * Create the 'sonar.exclusions' property to a comma separated list of files to exclude from analysis.
      * 
      * @param component
