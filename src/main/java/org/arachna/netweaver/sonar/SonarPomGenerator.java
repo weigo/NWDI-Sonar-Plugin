@@ -131,6 +131,13 @@ public class SonarPomGenerator {
 
     	}
     	
+    	if (DevelopmentComponentType.Java.equals(componentType)) {
+    		if (new File(baseLocation+File.separator+"src").exists()) {
+    			return "src";
+    		}
+
+    	}
+    	
 		return "";
 	}
 
