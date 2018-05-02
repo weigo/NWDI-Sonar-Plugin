@@ -83,7 +83,7 @@ public class SonarBuilder extends Builder {
 							DevelopmentComponentType componentType = component.getType();
 							if (DevelopmentComponentType.J2EEEjbModule.equals(componentType)
 									|| DevelopmentComponentType.J2EEWebModule.equals(componentType)
-									|| DevelopmentComponentType.J2EE.equals(componentType)) {
+									|| DevelopmentComponentType.J2EE.equals(componentType) || DevelopmentComponentType.Java.equals(componentType)) {
 								result |= new Maven("test sonar:sonar", maven.getName(), pomLocation, properties,
 										jvmOptions).perform(nwdiBuild, launcher, listener);
 
